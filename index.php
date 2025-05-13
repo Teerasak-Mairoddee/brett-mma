@@ -1,3 +1,8 @@
+<?php
+session_start();
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -17,52 +22,59 @@
 
   <body>
     <div class="all-content">
-      <!-- Navbar -->
-      <nav class="navbar navbar-expand-lg" id="navbar" style="background-color: black;">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#" id="logo">
+    <nav class="navbar navbar-expand-lg" id="navbar" style="background-color: black;">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="index.php" id="logo">
             <img src="images/logo.png" alt="Company Logo" width="120" height="auto">
-          </a>
+        </a>
 
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
-          </button>
+        </button>
 
-          <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav justify-content-center"> <!-- Added justify-content-center here -->
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#">Home</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Instructor Bio</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Muay Thai</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Time Table</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Memberships</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Events</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Contact</a>
-              </li>
-              <!-- Login Link -->
-              <li class="nav-item">
-                <a class="nav-link" href="login.html">Login</a>
-              </li>
-              
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav justify-content-center">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="index.php">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Instructor Bio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Muay Thai</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Time Table</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Memberships</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Events</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Contact</a>
+                </li>
+                <!-- Login Link -->
+                <?php if (isset($_SESSION['user_id'])): ?>
+    <li class="nav-item">
+        <span class="nav-link">Hi, <?php echo htmlspecialchars($_SESSION['First_Name']); ?></span>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="logout.php">Logout</a>
+    </li>
+<?php else: ?>
+    <li class="nav-item">
+        <a class="nav-link" href="login.php">Login</a>
+    </li>
+<?php endif; ?>
+
             </ul>
-          </div>
         </div>
-      </nav>
-      
-  
+    </div>
+</nav>
+
            
 
 
