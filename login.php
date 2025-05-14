@@ -1,11 +1,25 @@
 <?php
+//error loading
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
+
+//debug
+echo "Request method: " . $_SERVER["REQUEST_METHOD"] . "<br>";
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     include("db_conn.php");
 
     $email = $_POST['email'];
     $password = $_POST['password'];
+
+    //debug
+    echo "Email: " . $_POST['email'];
+    echo "Password: " . $_POST['password'];
+
 
     $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
@@ -14,6 +28,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $result = $stmt->get_result();
 
     //above logic is not pulling database
+    //debug
+    if (!$result) {
+      die("Query failed: " . $conn->error);
+    }
+
     echo "Number of rows: " . $result->num_rows;
 
     if ($result->num_rows === 1) {
@@ -31,6 +50,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
         } else {
             echo "Invalid password.";
+            echo "input: " . $password;
+            echo "database pass: " . $user['password'];
         }
     } else {
         echo "User not found.";
@@ -102,13 +123,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <div class="mb-3 row">
         <label for="inputEmail" class="col-sm-2 col-form-label">Email</label>
         <div class="col-sm-10">
-          <input type="email" class="form-control" id="inputEmail" placeholder="Enter your email" />
+          <input type="email" name="email" class="form-control" id="inputEmail" placeholder="Enter your email" />
         </div>
       </div>
       <div class="mb-3 row">
         <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
         <div class="col-sm-10">
-          <input type="password" class="form-control" id="inputPassword" placeholder="Enter password" />
+          <input type="password" name="password" class="form-control" id="inputPassword" placeholder="Enter password" />
         </div>
       </div>
       <div class="text-end">
