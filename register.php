@@ -11,7 +11,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   include("db_conn.php");
 
   $first = $_POST['First_Name'];
+
   $last = $_POST['Last_Name'];
+
   $email = $_POST['email'];
   $phone = $_POST['phone'];
   $password = $_POST['password'];
@@ -20,13 +22,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   if ($password !== $confirm) {
       die("Passwords do not match.");
   }
-
+  
+  // add a ruleset for all input fields
+  
   // Hash the password
   $hashed = password_hash($password, PASSWORD_DEFAULT);
 
   // Insert into DB (no need for user_id in this query)
   $stmt = $conn->prepare("INSERT INTO users (First_Name, Last_name, email, phone, password, date) VALUES (?, ?, ?, ?, ?, NOW())");
-  $stmt->bind_param("sssss", $first, $last, $email, $phone, $hashed);
+  $stmt->bind_param("sssss", $first, $last, $email, $phone, $hashed);//set $hashed to reset
 
   if ($stmt->execute()) {
       header("Location: login.php?registered=1");
@@ -103,28 +107,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav justify-content-center mx-auto">
             <li class="nav-item">
-              <a class="nav-link" href="index.html">Home</a>
-            </li>
+            <a class="nav-link active" aria-current="page" href="index.php">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./index.php#instructor-bio">Instructor Bio</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./index.php#muay-thai">Muay Thai</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./index.php#timetable">Timetable</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./index.php#memberships">Memberships</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./index.php#events">Events</a>
+          </li>
+          <li class="nav-item">
+           <a class="nav-link" href="./index.php#contact">Contact</a>
+          </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Instructor Bio</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Muay Thai</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Time Table</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Memberships</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Events</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Contact</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active" href="register.php">Register</a>
+              <a class="nav-link active" href="login.php">Login</a>
             </li>
           </ul>
         </div>

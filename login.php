@@ -13,8 +13,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute();
     $result = $stmt->get_result();
 
+    //above logic is not pulling database
+    echo "Number of rows: " . $result->num_rows;
+
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
+        //hash
+        echo "debug from num_rows=1";
+
 
         if (password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['user_id'];
@@ -28,6 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     } else {
         echo "User not found.";
+        
     }
 
     $stmt->close();
@@ -62,26 +69,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav justify-content-center">
           <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="index.php">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="./index.php#instructor-bio">Instructor Bio</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="./index.php#muay-thai">Muay Thai</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="./index.php#timetable">Timetable</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="./index.php#memberships">Memberships</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="./index.php#events">Events</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="./index.php#contact">Contact</a>
-                </li>
+            <a class="nav-link active" aria-current="page" href="index.php">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./index.php#instructor-bio">Instructor Bio</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./index.php#muay-thai">Muay Thai</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./index.php#timetable">Timetable</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./index.php#memberships">Memberships</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./index.php#events">Events</a>
+          </li>
+          <li class="nav-item">
+           <a class="nav-link" href="./index.php#contact">Contact</a>
+          </li>
         </ul>
       </div>
     </div>
