@@ -39,22 +39,22 @@ session_start();
                     <a class="nav-link active" aria-current="page" href="index.php">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Instructor Bio</a>
+                    <a class="nav-link" href="./index.php#instructor-bio">Instructor Bio</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Muay Thai</a>
+                    <a class="nav-link" href="./index.php#muay-thai">Muay Thai</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Time Table</a>
+                    <a class="nav-link" href="./index.php#timetable">Timetable</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Memberships</a>
+                    <a class="nav-link" href="./index.php#memberships">Memberships</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Events</a>
+                    <a class="nav-link" href="./index.php#events">Events</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Contact</a>
+                    <a class="nav-link" href="./index.php#contact">Contact</a>
                 </li>
                 <!-- Login Link -->
                 <?php if (isset($_SESSION['user_id'])): ?>
@@ -229,6 +229,7 @@ session_start();
                 <!--membership start-->
                 <!-- Membership Cards -->
                 <div class="membership-container">
+                    <h1 id="memberships">Memberships</h1>
                     <!-- Gold Membership -->
                     <div class="card shadow-sm membership-card gold">
                         <div class="card-header text-center">
@@ -307,6 +308,8 @@ session_start();
                     </div>
                 </div>
                 <!--contact end-->
+
+                <a href="./index.php#instructor-bio">Back to Top</a>
 
 
 

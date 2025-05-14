@@ -62,29 +62,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav justify-content-center">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="index.php">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Instructor Bio</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Muay Thai</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Time Table</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Memberships</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Events</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Contact</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="login.php">Login</a>
-          </li>
+                    <a class="nav-link active" aria-current="page" href="index.php">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./index.php#instructor-bio">Instructor Bio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./index.php#muay-thai">Muay Thai</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./index.php#timetable">Timetable</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./index.php#memberships">Memberships</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./index.php#events">Events</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./index.php#contact">Contact</a>
+                </li>
         </ul>
       </div>
     </div>
