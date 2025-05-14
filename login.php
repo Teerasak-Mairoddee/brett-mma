@@ -27,7 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute();
     $result = $stmt->get_result();
 
-    //above logic is not pulling database
     //debug
     if (!$result) {
       die("Query failed: " . $conn->error);

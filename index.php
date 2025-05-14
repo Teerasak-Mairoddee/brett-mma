@@ -59,7 +59,7 @@ session_start();
                 <!-- Login Link -->
                 <?php if (isset($_SESSION['user_id'])): ?>
     <li class="nav-item">
-        <span class="nav-link">Hi, <?php echo htmlspecialchars($_SESSION['First_Name']); ?></span>
+        <a class="nav-link" href="./account.php">Hi, <?php echo htmlspecialchars($_SESSION['First_Name']); ?></a>
     </li>
     <li class="nav-item">
         <a class="nav-link" href="logout.php">Logout</a>
