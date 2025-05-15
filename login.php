@@ -21,8 +21,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     echo "Password: " . $_POST['password'];
 
 
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
+    $stmt = $conn->prepare("SELECT * FROM users  WHERE email = ? UNION SELECT * FROM admins  WHERE email = ? ");
+    $stmt->bind_param("ss", $email,$email);
 
     $stmt->execute();
     $result = $stmt->get_result();
@@ -44,6 +44,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['First_Name'] = $user['First_Name'];
             $_SESSION['Last_Name'] = $user['Last_name'];
+            $_SESSION['email'] = $user['email'];
+
 
             header("Location: index.php");
             exit();

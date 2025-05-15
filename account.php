@@ -1,5 +1,11 @@
 <?php
 session_start();
+echo '<pre>';
+print_r($_SESSION);
+echo '</pre>';
+?>
+<?php
+session_start();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -88,11 +94,16 @@ session_start();
         <h1> Manage Account</h1>      
         <h2> Account Number: <?php echo htmlspecialchars($_SESSION['user_id']); ?></h2>
         <h2> Name: <?php echo htmlspecialchars($_SESSION['First_Name']); ?></h2>
+        <h2> Name: <?php echo htmlspecialchars($_SESSION['Last_Name']); ?></h2>
         <h2> Email: <?php echo htmlspecialchars($_SESSION['email']); ?></h2>
+      
+        
+
               
     <?php else: ?>
-        display error
+      <h2>display error</h2>
     <?php endif; ?>
+    
 
     <a href="./index.php#instructor-bio">Back to Top</a>
   </div>
