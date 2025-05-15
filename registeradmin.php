@@ -137,40 +137,52 @@
             $phone = $_POST['phone'];
             $password = $_POST['password'];
             $confirm = $_POST['confirmPassword'];
-            
-            if ($password !== $confirm) {
-                die("Passwords do not match.");
-            }else
+
+            if (isset($_POST['email'])) {
+            $email = trim($_POST['email']);
+
+            // Option B: ensure it’s the actual domain (email ends with @admin.com)
+            if (substr($email, -strlen('@admin.com')) === '@admin.com') {
+                // exact domain match
+                // do something here
+                if ($password !== $confirm) {
+                    die("Passwords do not match.\n");
+                }else
+                {
+                    $pw = $_POST['password'];
+                    $pw = trim($pw);
+                    if ( strlen($pw) < 7 ) {
+                        // password is not longer than 8 characters
+                        echo "Password needs to be 8 characters or longer\n";
+                    }else
+                    {
+                        // add a ruleset for all input fields
+  
+                        // Hash the password
+                        $hashed = password_hash($password, PASSWORD_DEFAULT);
+
+                        // Insert into DB (no need for user_id in this query)
+
+                        $stmt = $conn->prepare("INSERT INTO admins (First_Name, Last_name, email, phone, password, date) VALUES (?, ?, ?, ?, ?, NOW())");
+                        $stmt->bind_param("sssss", $first, $last, $email, $phone, $hashed);//set $hashed to reset
+  
+
+                        if ($stmt->execute()) {
+                            header("Location: login.php?registered=1");
+                            exit();
+                        } else {
+                            echo "Registration failed: " . $stmt->error;
+                            $stmt->close();
+                            $conn->close();
+                        }
+                    }              
+                }   
+            }else 
             {
-                 $pw = $_POST['password'];
-                 $pw = trim($pw);
-                 if ( strlen($pw) < 7 ) {
-                     // password is not longer than 8 characters
-                     echo "Password needs to be 8 characters or longer";
-                 }else
-                 {
-                    // add a ruleset for all input fields
-  
-                    // Hash the password
-                    $hashed = password_hash($password, PASSWORD_DEFAULT);
-
-                    // Insert into DB (no need for user_id in this query)
-
-                    $stmt = $conn->prepare("INSERT INTO admins (First_Name, Last_name, email, phone, password, date) VALUES (?, ?, ?, ?, ?, NOW())");
-                    $stmt->bind_param("sssss", $first, $last, $email, $phone, $hashed);//set $hashed to reset
-  
-
-                    if ($stmt->execute()) {
-                        header("Location: login.php?registered=1");
-                        exit();
-                    } else {
-                        echo "Registration failed: " . $stmt->error;
-                        $stmt->close();
-                        $conn->close();
-                    }
-                 }              
+                echo "Not authorized.\n";
             }
         }
+    }
     ?>
 
     <div class="text-end">
