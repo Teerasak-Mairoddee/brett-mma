@@ -1,48 +1,8 @@
-<?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-
-
-session_start();
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  include("db_conn.php");
-
-  $first = $_POST['First_Name'];
-
-  $last = $_POST['Last_Name'];
-
-  $email = $_POST['email'];
-  $phone = $_POST['phone'];
-  $password = $_POST['password'];
-  $confirm = $_POST['confirmPassword'];
-
-  if ($password !== $confirm) {
-      die("Passwords do not match.");
-  }
-  
-  // add a ruleset for all input fields
-  
-  // Hash the password
-  $hashed = password_hash($password, PASSWORD_DEFAULT);
-
-  // Insert into DB (no need for user_id in this query)
-  $stmt = $conn->prepare("INSERT INTO users (First_Name, Last_name, email, phone, password, date) VALUES (?, ?, ?, ?, ?, NOW())");
-  $stmt->bind_param("sssss", $first, $last, $email, $phone, $hashed);//set $hashed to reset
-
-  if ($stmt->execute()) {
-      header("Location: login.php?registered=1");
-      exit();
-  } else {
-      echo "Registration failed: " . $stmt->error;
-  }
-
-  $stmt->close();
-  $conn->close();
-}
-
+ <?php
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+    session_start();
 ?>
 
 <!DOCTYPE html>
@@ -221,6 +181,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         />
       </div>
     </div>
+
+    <?php
+
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+      include("db_conn.php");
+
+      $first = $_POST['First_Name'];
+
+      $last = $_POST['Last_Name'];
+
+      $email = $_POST['email'];
+      $phone = $_POST['phone'];
+      $password = $_POST['password'];
+      $confirm = $_POST['confirmPassword'];
+
+      if ($password !== $confirm) {
+          die("Passwords do not match.");
+      }else
+      {
+        $pw = $_POST['password'];
+        $pw = trim($pw);
+        if ( strlen($pw) < 7 ) {
+            // password is not longer than 8 characters
+            echo "Password needs to be 8 characters or longer";
+        }else
+        {
+            // add a ruleset for all input fields
+  
+            // Hash the password
+            $hashed = password_hash($password, PASSWORD_DEFAULT);
+
+            // Insert into DB (no need for user_id in this query)
+            $stmt = $conn->prepare("INSERT INTO users (First_Name, Last_name, email, phone, password, date) VALUES (?, ?, ?, ?, ?, NOW())");
+            $stmt->bind_param("sssss", $first, $last, $email, $phone, $hashed);//set $hashed to reset
+
+            if ($stmt->execute()) {
+                header("Location: login.php?registered=1");
+                exit();
+            } else {
+            echo "Registration failed: " . $stmt->error;
+            $stmt->close();
+            $conn->close();
+            }
+        }
+      }
+    }
+?>
+
 
     <div class="text-end">
       <button type="submit" class="btn btn-danger px-4">Sign Up</button>
