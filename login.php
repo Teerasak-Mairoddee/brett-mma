@@ -1,68 +1,56 @@
 <?php
-//error loading
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-session_start();
-
-//debug
-echo "Request method: " . $_SERVER["REQUEST_METHOD"] . "<br>";
-
-
+//only Connect to database if form is sent 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     include("db_conn.php");
+    session_start();
 
+//user inputs email and password-> Form submission
     $email = $_POST['email'];
     $password = $_POST['password'];
-
-    //debug
-    echo "Email: " . $_POST['email'];
-    echo "Password: " . $_POST['password'];
-
-
-    $stmt = $conn->prepare("SELECT * FROM users  WHERE email = ? UNION SELECT * FROM admins  WHERE email = ? ");
-    $stmt->bind_param("ss", $email,$email);
-
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    //debug
-    if (!$result) {
-      die("Query failed: " . $conn->error);
-    }
-
-    echo "Number of rows: " . $result->num_rows;
-
-    if ($result->num_rows === 1) {
-        $user = $result->fetch_assoc();
-        //hash
-        echo "debug from num_rows=1";
-
-
-        if (password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['user_id'];
-            $_SESSION['First_Name'] = $user['First_Name'];
-            $_SESSION['Last_Name'] = $user['Last_name'];
-            $_SESSION['email'] = $user['email'];
-
-
-            header("Location: index.php");
-            exit();
-        } else {
-            echo "Invalid password.";
-            echo "input: " . $password;
-            echo "database pass: " . $user['password'];
+//function 
+    function try_login($conn, $email, $password, $table, $redirect) {
+        $stmt = $conn->prepare("SELECT * FROM $table WHERE email = ?");
+        if (!$stmt) {
+            die("Prepare failed: " . $conn->error);
         }
-    } else {
-        echo "User not found.";
-        
+        //Paramter binding(? becomes email in string form) to avoid SQL injection
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        //$result && $result -> prevent crashing as it double checks database
+        if ($result && $result->num_rows === 1) {
+            $user = $result->fetch_assoc();
+            //if found email -> execute this code below and store on page with $_SESSION
+            if (password_verify($password, $user['password'])) {
+                $_SESSION['user_id'] = $user['user_id'];
+                $_SESSION['First_Name'] = $user['First_Name'];
+                $_SESSION['Last_Name'] = $user['Last_name'];
+                $_SESSION['email'] = $user['email'];
+                //redirect to admin or index -> try_login function
+                header("Location: $redirect");
+                exit();
+            } else {
+                echo "Invalid password.<br>";
+                echo "Input: " . $password . "<br>";
+                echo "DB pass: " . $user['password'] . "<br>";
+            }
+        }
+
+        $stmt->close();
     }
 
-    $stmt->close();
+// funtion  Try login for "admins" and "user" = $table ... "adminpage.php" and "index.php" = $redirect
+    try_login($conn, $email, $password, "admins", "adminpage.php");
+    try_login($conn, $email, $password, "users", "index.php");
+
+    echo "User not found or invalid credentials.";
     $conn->close();
 }
 ?>
+
+
+
+
 
 <!DOCTYPE html>
 <html lang="en">
