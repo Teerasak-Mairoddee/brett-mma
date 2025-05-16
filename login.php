@@ -26,6 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['First_Name'] = $user['First_Name'];
                 $_SESSION['Last_Name'] = $user['Last_name'];
                 $_SESSION['email'] = $user['email'];
+                $_SESSION['role']    = 'admin';
                 //redirect to admin or index -> try_login function
                 header("Location: $redirect");
                 exit();

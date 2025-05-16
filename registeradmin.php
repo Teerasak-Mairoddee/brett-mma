@@ -1,189 +1,164 @@
 <?php
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
-    session_start();
-?>
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+session_start();
+include __DIR__ . '/db_conn.php';  // gives $conn (mysqli)
 
+// 1) Validate invite token from URL
+$rawToken = $_GET['token'] ?? '';
+if (!preg_match('/^[0-9a-f]{64}$/', $rawToken)) {
+    die('Invalid or missing invite token.');
+}
+$hash = hash('sha256', $rawToken);
+
+$stmt = $conn->prepare(
+    "SELECT id, used_at, expires_at FROM admin_invites WHERE token_hash = ? LIMIT 1"
+);
+$stmt->bind_param('s', $hash);
+$stmt->execute();
+$result = $stmt->get_result();
+$invite = $result->fetch_assoc();
+$stmt->close();
+
+if (!$invite) {
+    die('This invite is invalid.');
+}
+if ($invite['used_at'] !== null) {
+    die('This invite has already been used.');
+}
+if (new DateTime($invite['expires_at']) < new DateTime()) {
+    die('This invite has expired.');
+}
+
+// 2) CSRF token generation
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(16));
+}
+$csrf = $_SESSION['csrf_token'];
+
+$errors = [];
+
+// 3) Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // CSRF validation
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $csrf) {
+        die('CSRF validation failed.');
+    }
+
+    // Input sanitization & validation
+    $first   = trim($_POST['First_Name'] ?? '');
+    $last    = trim($_POST['Last_Name'] ?? '');
+    $email   = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
+    $phone   = trim($_POST['phone'] ?? '');
+    $pass    = $_POST['password'] ?? '';
+    $confirm = $_POST['confirmPassword'] ?? '';
+
+    if (!$first)   { $errors[] = 'First name is required.'; }
+    if (!$last)    { $errors[] = 'Last name is required.'; }
+    if (!$email)   { $errors[] = 'Valid email is required.'; }
+    if ($pass !== $confirm) { $errors[] = 'Passwords do not match.'; }
+    if (strlen($pass) < 8)  { $errors[] = 'Password must be at least 8 characters.'; }
+
+    if (empty($errors)) {
+        // 4) Create admin account
+        $pwHash = password_hash($pass, PASSWORD_DEFAULT);
+        $stmt = $conn->prepare(
+            "INSERT INTO admins (First_Name, Last_name, email, phone, password, date) VALUES (?, ?, ?, ?, ?, NOW())"
+        );
+        $stmt->bind_param('sssss', $first, $last, $email, $phone, $pwHash);
+
+        if ($stmt->execute()) {
+            $newAdminId = $stmt->insert_id;
+            $stmt->close();
+
+            // 5) Mark invite as used
+            $upd = $conn->prepare(
+                "UPDATE admin_invites SET used_at = NOW(), used_by = ? WHERE id = ?"
+            );
+            $upd->bind_param('ii', $newAdminId, $invite['id']);
+            $upd->execute();
+            $upd->close();
+
+            // 6) Redirect to login
+            header('Location: login.php?registered=1');
+            exit;
+        } else {
+            $errors[] = 'Registration failed: ' . $stmt->error;
+            $stmt->close();
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sign Up | MMAFIA</title>
-
     <!-- Fonts & Styles -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Anton&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="style.css" />
-
     <!-- Bootstrap -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT"
-      crossorigin="anonymous"
-    />
-  </head>
-
-  <body
-    style="
-      background-color: #111;
-      color: white;
-      font-family: 'Anton', sans-serif;
-    "
-  >
-   
-
- <!-- Signup Form -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous" />
+</head>
+<body style="background-color: #111; color: white; font-family: 'Anton', sans-serif;">
 <div class="container py-5">
-  <h1 class="text-center mb-4">Create admin Account</h1>
+  <h1 class="text-center mb-4">Create Admin Account</h1>
 
-  <form class="signup-form mx-auto" style="max-width: 600px" method="POST" action="registeradmin.php">
-    
+  <?php if (!empty($errors)): ?>
+    <div class="alert alert-danger">
+      <ul>
+        <?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?>
+      </ul>
+    </div>
+  <?php endif; ?>
+
+  <form class="signup-form mx-auto" style="max-width: 600px" method="POST" action="registeradmin.php?token=<?= htmlspecialchars($rawToken) ?>">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+
     <div class="mb-3 row">
       <label for="firstName" class="col-sm-3 col-form-label">First Name</label>
       <div class="col-sm-9">
-        <input
-          type="text"
-          class="form-control"
-          id="firstName"
-          name="First_Name"
-          required
-        />
+        <input type="text" class="form-control" id="firstName" name="First_Name" required value="<?= htmlspecialchars($_POST['First_Name'] ?? '') ?>" />
       </div>
     </div>
 
     <div class="mb-3 row">
       <label for="lastName" class="col-sm-3 col-form-label">Last Name</label>
       <div class="col-sm-9">
-        <input
-          type="text"
-          class="form-control"
-          id="lastName"
-          name="Last_Name"
-          required
-        />
+        <input type="text" class="form-control" id="lastName" name="Last_Name" required value="<?= htmlspecialchars($_POST['Last_Name'] ?? '') ?>" />
       </div>
     </div>
 
     <div class="mb-3 row">
       <label for="email" class="col-sm-3 col-form-label">Email</label>
       <div class="col-sm-9">
-        <input
-          type="email"
-          class="form-control"
-          id="email"
-          name="email"
-          placeholder="Enter your email"
-          required
-        />
+        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" />
       </div>
     </div>
 
     <div class="mb-3 row">
       <label for="phone" class="col-sm-3 col-form-label">Phone</label>
       <div class="col-sm-9">
-        <input
-          type="tel"
-          class="form-control"
-          id="phone"
-          name="phone"
-          placeholder="Optional"
-        />
+        <input type="tel" class="form-control" id="phone" name="phone" placeholder="Optional" value="<?= htmlspecialchars($_POST['phone'] ?? '') ?>" />
       </div>
     </div>
 
     <div class="mb-3 row">
       <label for="password" class="col-sm-3 col-form-label">Password</label>
       <div class="col-sm-9">
-        <input
-          type="password"
-          class="form-control"
-          id="password"
-          name="password"
-          placeholder="Enter password"
-          required
-        />
+        <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required />
       </div>
     </div>
 
     <div class="mb-3 row">
       <label for="confirmPassword" class="col-sm-3 col-form-label">Confirm</label>
       <div class="col-sm-9">
-        <input
-          type="password"
-          class="form-control"
-          id="confirmPassword"
-          name="confirmPassword"
-          placeholder="Confirm password"
-          required
-        />
+        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm password" required />
       </div>
     </div>
-
-    <?php
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            include("db_conn.php");
-
-            $first = $_POST['First_Name'];
-
-            $last = $_POST['Last_Name'];
-
-            $email = $_POST['email'];
-            $phone = $_POST['phone'];
-            $password = $_POST['password'];
-            $confirm = $_POST['confirmPassword'];
-
-            if (isset($_POST['email'])) {
-            $email = trim($_POST['email']);
-
-            // Option B: ensure it’s the actual domain (email ends with @admin.com)
-            if (substr($email, -strlen('@admin.com')) === '@admin.com') {
-                // exact domain match
-                // do something here
-                if ($password !== $confirm) {
-                    die("Passwords do not match.\n");
-                }else
-                {
-                    $pw = $_POST['password'];
-                    $pw = trim($pw);
-                    if ( strlen($pw) < 7 ) {
-                        // password is not longer than 8 characters
-                        echo "Password needs to be 8 characters or longer\n";
-                    }else
-                    {
-                        // add a ruleset for all input fields
-  
-                        // Hash the password
-                        $hashed = password_hash($password, PASSWORD_DEFAULT);
-
-                        // Insert into DB (no need for user_id in this query)
-
-                        $stmt = $conn->prepare("INSERT INTO admins (First_Name, Last_name, email, phone, password, date) VALUES (?, ?, ?, ?, ?, NOW())");
-                        $stmt->bind_param("sssss", $first, $last, $email, $phone, $hashed);//set $hashed to reset
-  
-
-                        if ($stmt->execute()) {
-                            header("Location: login.php?registered=1");
-                            exit();
-                        } else {
-                            echo "Registration failed: " . $stmt->error;
-                            $stmt->close();
-                            $conn->close();
-                        }
-                    }              
-                }   
-            }else 
-            {
-                echo "Not authorized.\n";
-            }
-        }
-    }
-    ?>
 
     <div class="text-end">
       <button type="submit" class="btn btn-danger px-4">Sign Up</button>
@@ -192,7 +167,6 @@
   </form>
 </div>
 
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
