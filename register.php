@@ -3,6 +3,62 @@
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
     session_start();
+
+    $errors = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    include 'db_conn.php';  // gives you $conn (mysqli)
+
+    // 1) Trim & sanitize inputs
+    $first   = trim($_POST['First_Name']   ?? '');
+    $last    = trim($_POST['Last_Name']    ?? '');
+    $email   = filter_var($_POST['email']  ?? '', FILTER_VALIDATE_EMAIL);
+    $phone   = trim($_POST['phone']        ?? '');
+    $pass    = $_POST['password']          ?? '';
+    $confirm = $_POST['confirmPassword']   ?? '';
+
+    // 2) Validate & collect errors
+    if ($first === '') {
+        $errors[] = 'First name is required.';
+    }
+    if ($last === '') {
+        $errors[] = 'Last name is required.';
+    }
+    if (! $email) {
+        $errors[] = 'A valid email is required.';
+    }
+    if ($pass === '' || $confirm === '') {
+        $errors[] = 'Both password fields are required.';
+    } elseif ($pass !== $confirm) {
+        $errors[] = 'Passwords do not match.';
+    } elseif (strlen($pass) < 8) {
+        $errors[] = 'Password must be at least 8 characters.';
+    }
+
+    // 3) If no errors, attempt insert
+    if (empty($errors)) {
+        $pwHash = password_hash($pass, PASSWORD_DEFAULT);
+
+        $stmt = $conn->prepare(
+            "INSERT INTO users 
+               (First_Name, Last_name, email, phone, password, date)
+             VALUES (?,?,?,?,?, NOW())"
+        );
+        $stmt->bind_param('sssss', $first, $last, $email, $phone, $pwHash);
+
+        if ($stmt->execute()) {
+            // Success! Redirect back to login with a flag
+            header('Location: login.php?registered=1');
+            exit;
+        } else {
+            $errors[] = 'Registration failed: ' . $stmt->error;
+        }
+        $stmt->close();
+    }
+    $conn->close();
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -99,6 +155,15 @@
 <div class="container py-5">
   <h1 class="text-center mb-4">Create Your MMAFIA Account</h1>
 
+  <!-- Show errors -->
+  <?php if (!empty($errors)): ?>
+    <div class="alert alert-danger">
+      <ul>
+        <?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?>
+      </ul>
+    </div>
+  <?php endif; ?>
+
   <form class="signup-form mx-auto" style="max-width: 600px" method="POST" action="register.php">
     
     <div class="mb-3 row">
@@ -182,53 +247,7 @@
       </div>
     </div>
 
-    <?php
-
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-      include("db_conn.php");
-
-      $first = $_POST['First_Name'];
-
-      $last = $_POST['Last_Name'];
-
-      $email = $_POST['email'];
-      $phone = $_POST['phone'];
-      $password = $_POST['password'];
-      $confirm = $_POST['confirmPassword'];
-
-      if ($password !== $confirm) {
-          die("Passwords do not match.");
-      }else
-      {
-        $pw = $_POST['password'];
-        $pw = trim($pw);
-        if ( strlen($pw) < 7 ) {
-            // password is not longer than 8 characters
-            echo "Password needs to be 8 characters or longer";
-        }else
-        {
-            // add a ruleset for all input fields
-  
-            // Hash the password
-            $hashed = password_hash($password, PASSWORD_DEFAULT);
-
-            // Insert into DB (no need for user_id in this query)
-            $stmt = $conn->prepare("INSERT INTO users (First_Name, Last_name, email, phone, password, date) VALUES (?, ?, ?, ?, ?, NOW())");
-            $stmt->bind_param("sssss", $first, $last, $email, $phone, $hashed);//set $hashed to reset
-
-            if ($stmt->execute()) {
-                header("Location: login.php?registered=1");
-                exit();
-            } else {
-            echo "Registration failed: " . $stmt->error;
-            $stmt->close();
-            $conn->close();
-            }
-        }
-      }
-    }
-  ?>
-
+    
 
     <div class="text-end">
       <button type="submit" class="btn btn-danger px-4">Sign Up</button>

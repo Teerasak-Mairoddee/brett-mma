@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$first)   { $errors[] = 'First name is required.'; }
     if (!$last)    { $errors[] = 'Last name is required.'; }
-    if (!$email)   { $errors[] = 'Valid email is required.'; }
+    if (!$email)   { $errors[] = 'Not authorised.'; } //do not be verbose about this
     if ($pass !== $confirm) { $errors[] = 'Passwords do not match.'; }
     if (strlen($pass) < 8)  { $errors[] = 'Password must be at least 8 characters.'; }
 
@@ -107,6 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="container py-5">
   <h1 class="text-center mb-4">Create Admin Account</h1>
 
+  <!-- Show errors -->
   <?php if (!empty($errors)): ?>
     <div class="alert alert-danger">
       <ul>

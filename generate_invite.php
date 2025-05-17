@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     );
 
     // Show the link exactly once
-    echo '<p> Invite link (copy this now; it won’t be shown again):</p>';
+    echo '<p> Invite link (copy this now; it will not be shown again):</p>';
     echo '<pre>' . htmlspecialchars($link, ENT_QUOTES) . '</pre>';
     exit;
 }
