@@ -40,8 +40,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->close();
     }
 
-// funtion  Try login for "admins" and "user" = $table ... "adminpage.php" and "index.php" = $redirect
-    try_login($conn, $email, $password, "admins", "adminpage.php");
+// funtion  Try login for "admins" and "user" = $table ... "admin_index.php" and "index.php" = $redirect
+    try_login($conn, $email, $password, "admins", "admin_index.php");
     try_login($conn, $email, $password, "users", "index.php");
 
     echo "User not found or invalid credentials.";

@@ -96,7 +96,7 @@ session_start();
         <h2> Name: <?php echo htmlspecialchars($_SESSION['First_Name']); ?></h2>
         <h2> Name: <?php echo htmlspecialchars($_SESSION['Last_Name']); ?></h2>
         <h2> Email: <?php echo htmlspecialchars($_SESSION['email']); ?></h2>
-      
+        <a href="become_member.php" class="btn btn-outline-dark btn-platinum">Become a member</a>
         
 
               

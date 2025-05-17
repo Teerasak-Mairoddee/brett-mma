@@ -30,7 +30,7 @@ session_start();
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg" id="navbar" style="background-color: black;">
       <div class="container-fluid">
-        <a class="navbar-brand" href="index.php" id="logo">
+        <a class="navbar-brand" href="admin_index.php" id="logo">
           <img src="images/logo.png" alt="Company Logo" width="120" height="auto">
         </a>
 
@@ -49,25 +49,25 @@ session_start();
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav justify-content-center">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="index.php">Home</a>
+              <a class="nav-link active" aria-current="page" href="admin_index.php">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="./index.php#instructor-bio">Instructor Bio</a>
+              <a class="nav-link" href="./admin_index.php#instructor-bio">Instructor Bio</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="./index.php#muay-thai">Muay Thai</a>
+              <a class="nav-link" href="./admin_index.php#muay-thai">Muay Thai</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="./index.php#timetable">Timetable</a>
+              <a class="nav-link" href="./admin_index.php#timetable">Timetable</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="./index.php#memberships">Memberships</a>
+              <a class="nav-link" href="./admin_index.php#memberships">Memberships</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="./index.php#events">Events</a>
+              <a class="nav-link" href="./admin_index.php#events">Events</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="./index.php#contact">Contact</a>
+              <a class="nav-link" href="./admin_index.php#contact">Contact</a>
             </li>
 
             <!-- Login Link -->
@@ -96,6 +96,8 @@ session_start();
         <h2> Name: <?php echo htmlspecialchars($_SESSION['First_Name']); ?></h2>
         <h2> Name: <?php echo htmlspecialchars($_SESSION['Last_Name']); ?></h2>
         <h2> Email: <?php echo htmlspecialchars($_SESSION['email']); ?></h2>
+        <a href="admin_page.php" class="btn btn-outline-dark btn-platinum">admin page</a>
+        
         
       
         
@@ -106,7 +108,7 @@ session_start();
     <?php endif; ?>
     
 
-    <a href="./index.php#instructor-bio">Back to Top</a>
+    
   </div>
 
   <script 
