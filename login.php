@@ -1,58 +1,61 @@
 <?php
-//only Connect to database if form is sent 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    include("db_conn.php");
-    session_start();
+// login.php
+session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-//user inputs email and password-> Form submission
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-//function 
-    function try_login($conn, $email, $password, $table, $redirect) {
-        $stmt = $conn->prepare("SELECT * FROM $table WHERE email = ?");
-        if (!$stmt) {
-            die("Prepare failed: " . $conn->error);
-        }
-        //Paramter binding(? becomes email in string form) to avoid SQL injection
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        //$result && $result -> prevent crashing as it double checks database
-        if ($result && $result->num_rows === 1) {
-            $user = $result->fetch_assoc();
-            //if found email -> execute this code below and store on page with $_SESSION
-            if (password_verify($password, $user['password'])) {
-                $_SESSION['user_id'] = $user['user_id'];
-                $_SESSION['First_Name'] = $user['First_Name'];
-                $_SESSION['Last_Name'] = $user['Last_name'];
-                $_SESSION['email'] = $user['email'];
-                $_SESSION['role']    = 'admin';
-                //redirect to admin or index -> try_login function
-                header("Location: $redirect");
-                exit();
-            } else {
-                echo "Invalid password.<br>";
-                echo "Input: " . $password . "<br>";
-                echo "DB pass: " . $user['password'] . "<br>";
-            }
-        }
+$errors = [];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/db_conn.php'; // provides $conn
 
-        $stmt->close();
+    // 1) Trim & validate inputs
+    $email    = filter_var(trim($_POST['email'] ?? ''), FILTER_VALIDATE_EMAIL);
+    $password = $_POST['password'] ?? '';
+    if (!$email) {
+        $errors[] = 'Please enter a valid email.';
+    }
+    if ($password === '') {
+        $errors[] = 'Please enter your password.';
     }
 
-// funtion  Try login for "admins" and "user" = $table ... "admin_index.php" and "index.php" = $redirect
-    try_login($conn, $email, $password, "admins", "admin_index.php");
-    try_login($conn, $email, $password, "users", "index.php");
+    // 2) Attempt login if no input errors
+    if (empty($errors)) {
+        function try_login($conn, $email, $password, $table, $roleName, $redirect) {
+            $stmt = $conn->prepare("SELECT user_id, First_Name, Last_name, email, password FROM `$table` WHERE email = ? LIMIT 1");
+            if (! $stmt) {
+                throw new Exception('DB error: ' . $conn->error);
+            }
+            $stmt->bind_param('s', $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $stmt->close();
 
-    echo "User not found or invalid credentials.";
-    $conn->close();
+            if ($result && $row = $result->fetch_assoc()) {
+                if (password_verify($password, $row['password'])) {
+                    // Set session
+                    $_SESSION['user_id']    = $row['user_id'];
+                    $_SESSION['First_Name'] = $row['First_Name'];
+                    $_SESSION['Last_Name']  = $row['Last_name'];
+                    $_SESSION['email']      = $row['email'];
+                    $_SESSION['role']       = $roleName;
+                    header('Location: ' . $redirect);
+                    exit;
+                }
+            }
+            return false;
+        }
+
+        // Admin first
+        if (! try_login($conn, $email, $password, 'admins', 'admin', 'admin_index.php')) {
+            // Regular user next
+            if (! try_login($conn, $email, $password, 'users', 'user', 'index.php')) {
+                $errors[] = 'Invalid email or password.';
+            }
+        }
+        $conn->close();
+    }
 }
 ?>
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,40 +69,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body style="background-color: #111; color: white; font-family: 'Anton', sans-serif;">
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg" id="navbar" style="background-color: black;">
+  <nav class="navbar navbar-expand-lg" style="background-color: black;">
     <div class="container-fluid">
       <a class="navbar-brand" href="index.php" id="logo">
-        <img src="images/logo.png" alt="Company Logo" width="120" height="auto">
+        <img src="images/logo.png" alt="Logo" width="120">
       </a>
-
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav justify-content-center">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="index.php">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="./index.php#instructor-bio">Instructor Bio</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="./index.php#muay-thai">Muay Thai</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="./index.php#timetable">Timetable</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="./index.php#memberships">Memberships</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="./index.php#events">Events</a>
-          </li>
-          <li class="nav-item">
-           <a class="nav-link" href="./index.php#contact">Contact</a>
-          </li>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.php#instructor-bio">Instructor Bio</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.php#muay-thai">Muay Thai</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.php#timetable">Timetable</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.php#memberships">Memberships</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.php#events">Events</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.php#contact">Contact</a></li>
         </ul>
       </div>
     </div>
@@ -108,28 +95,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <!-- Login Form -->
   <div class="container py-5">
     <h1 class="text-center mb-4">Login to MMAFIA</h1>
-    <form class="login-form mx-auto" style="max-width: 600px" method="POST" action="login.php">
-
+    <?php if (!empty($errors)): ?>
+      <div class="alert alert-danger mx-auto" style="max-width:600px;">
+        <ul class="mb-0">
+          <?php foreach ($errors as $e): ?>
+            <li><?= htmlspecialchars($e, ENT_QUOTES) ?></li>
+          <?php endforeach; ?>
+        </ul>
+      </div>
+    <?php endif; ?>
+    <form class="login-form mx-auto" style="max-width: 600px;" method="POST" action="login.php">
       <div class="mb-3 row">
         <label for="inputEmail" class="col-sm-2 col-form-label">Email</label>
         <div class="col-sm-10">
-          <input type="email" name="email" class="form-control" id="inputEmail" placeholder="Enter your email" />
+          <input type="email" name="email" class="form-control" id="inputEmail" placeholder="Enter your email" required
+                 value="<?= htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES) ?>">
         </div>
       </div>
       <div class="mb-3 row">
         <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
         <div class="col-sm-10">
-          <input type="password" name="password" class="form-control" id="inputPassword" placeholder="Enter password" />
+          <input type="password" name="password" class="form-control" id="inputPassword" placeholder="Enter password" required>
         </div>
       </div>
       <div class="text-end">
         <button type="submit" class="btn btn-danger px-4">Login</button>
-        <a href="register.php" class="btn btn-danger px-4">Register</a>
+        <a href="register.php" class="btn btn-outline-light px-4">Register</a>
       </div>
     </form>
   </div>
 
-  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
